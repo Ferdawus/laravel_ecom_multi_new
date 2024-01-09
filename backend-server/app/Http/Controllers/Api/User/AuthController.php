@@ -10,13 +10,14 @@ use App\Models\User;
 use Dotenv\Exception\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Twilio\Rest\Client;
 
 class AuthController extends Controller
 {
     public function login(LoginRequest $request)
     {
         $user = User::where('phone', $request->phone)->first();
- 
+
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'phone' => ['The provided credentials are incorrect.'],
@@ -26,13 +27,20 @@ class AuthController extends Controller
     }
     public function register(RegisterRequest $request)
     {
-        $user = User::create([
-            'name'=>$request->input('name'),
-            'email'=>$request->input('email'),
-            'phone'=>$request->input('phone'),
-            'password'=>bcrypt($request->input('password'))
-        ]);
-        return $this->makeToken($user);
+        // RegisterRequest
+        $user            = User::create($request->validated());
+        // return $this->makeToken($user);
+        $sid             = getenv("TWILIO_ACCOUNT_SID");
+        $token           = getenv("TWILIO_AUTH_TOKEN");
+        $verificationSid = getenv("TWILIO_VERIFICATION_SID");
+        $twilio          = new Client($sid, $token);
+
+        $verification = $twilio->verify->v2->services($verificationSid)
+                                           ->verifications
+                                           ->create("+88" . $user->phone, "sms");
+
+        // print($verification->status);
+        return response()->json($verification->status);
 
     }
     public function makeToken($user)
@@ -41,7 +49,7 @@ class AuthController extends Controller
         // return AuthResource::make($user);
         return (new AuthResource($user))
                 ->additional(['meta' => [
-                    'token' => $token,
+                    'token'     => $token,
                     'token_type'=>'Bearer',
                 ]]);
     }

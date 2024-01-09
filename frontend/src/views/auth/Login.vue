@@ -6,10 +6,10 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import * as yup from "yup";
 import { useRouter } from "vue-router";
 import { ElNotification } from "element-plus";
-// const schema = yup.object({
-//   phone: yup.string().required("Phone field is required"),
-//   password: yup.string().required().min(8),
-// });
+const schema = yup.object({
+  phone: yup.string().required("Phone field is required"),
+  password: yup.string().required().min(8),
+});
 
 const auth = useAuth();
 const { errors } = storeToRefs(auth);
@@ -30,7 +30,7 @@ const onSubmit = async (values, { setErrors }) => {
     // alert("login success");
     ElNotification({
       title: "Success",
-      message: "This is a success message",
+      message: "login success",
       position: "top-left",
       type: "success",
     });

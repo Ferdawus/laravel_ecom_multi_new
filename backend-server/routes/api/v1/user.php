@@ -20,6 +20,5 @@ Route::middleware('auth:user-api')->group( function () {
         Route::get('/me','user');
     });
 
-    
 
 });
